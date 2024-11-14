@@ -2,13 +2,13 @@
 
 Deseja-se cadastrar passageiros, tripulação e voos da companhia aérea. As informações a serem cadastradas são:
 
- PASSAGEIRO: código, nome, endereço, telefone, fidelidade (sim/não), pontos
+PASSAGEIRO: código, nome, endereço, telefone, fidelidade (sim/não), pontos
 fidelidade.
- TRIPULAÇÃO: código, nome, telefone, cargo (piloto, copiloto, comissário).
- VOO: código do voo, data, hora, origem, destino, código do avião, código do piloto,
+TRIPULAÇÃO: código, nome, telefone, cargo (piloto, copiloto, comissário).
+VOO: código do voo, data, hora, origem, destino, código do avião, código do piloto,
 código do copiloto, código do comissário, status (ativo/inativo), tarifa.
- ASSENTO: número do assento, código do voo, status (ocupado/livre).
- RESERVA: código do voo, número do assento, código do passageiro.
+ASSENTO: número do assento, código do voo, status (ocupado/livre).
+RESERVA: código do voo, número do assento, código do passageiro.
 
 Devem ser implementadas:
 1. Cadastro de Passageiro:
