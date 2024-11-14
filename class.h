@@ -51,11 +51,10 @@ public:
         : codigo_voo(codigo_voo), data(data), origem(origem), destino(destino), cod_aviao(cod_aviao) {}
 };
 
-class Assento{
+class Assento: public Voo{
 public:
     string cadeira;
     bool status;
-    Voo voo;
     Passageiro passageiro;
 
     Assento(const string& cadeira= "X00", bool status = false)
