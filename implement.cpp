@@ -194,44 +194,43 @@ void cadastrarVoo()
     fclose(arq_voo);
 }
 
-void cadastrarAssento()
-{
-    FILE *arq_assento = fopen("assento.bin", "ab");
-    if (arq_assento == NULL)
-    {
-        cout << "Erro ao abrir arquivo" << endl;
+struct AssentoBin {
+    char cadeira[3];    
+    int codigo_voo;     
+    bool status;        
+};
+
+void cadastrarAssento() {
+    FILE *arq_assento = fopen("assento.bin", "rb+");
+    if (arq_assento == NULL) {
+        cerr << "Erro ao abrir arquivo de assentos." << endl;
+        return;
     }
 
-    Assento assento;
+    AssentoBin novoAssento;
+    cout << "Digite o código do voo: ";
+    cin >> novoAssento.codigo_voo;
+    cin.ignore();
 
-    cout << "Qual a cadeira cadastrar? ";
-    getline(cin, assento.cadeira);
+    cout << "Digite o número do assento (ex: 1A): ";
+    cin.getline(novoAssento.cadeira, sizeof(novoAssento.cadeira));
 
-    if (assento.status == true){
-        cout << "Assento ocupado, escolha/cadastre outro assento"<< endl;
-    }else 
-        assento.status = true;
-        cout << "Assento liberado/cadastrado com sucesso para passageiro "<< passageiro.nome << endl;
-        //??? como corrigir esse erro??
-
-    struct AssentoBin
-    {
-        char cadeira [3];
-        bool status;
-    };
-
-    AssentoBin assentoBin;
-    strncpy(assentoBin.cadeira, assento.cadeira.c_str(), sizeof(assentoBin.cadeira));
-    assentoBin.status = assento.status;
-
-     if (fwrite(&assentoBin, sizeof(AssentoBin), 1, arq_assento) != 1)
-    {
-        cerr << "Erro ao salvar os dados no arquivo!" << endl;
+    AssentoBin assentoExistente;
+    while (fread(&assentoExistente, sizeof(AssentoBin), 1, arq_assento) == 1) {
+        if (assentoExistente.codigo_voo == novoAssento.codigo_voo &&
+            strcmp(assentoExistente.cadeira, novoAssento.cadeira) == 0) {
+            if (assentoExistente.status) {
+                cout << "Assento já ocupado. Escolha outro." << endl;
+                fclose(arq_assento);
+                return;
+            }
+        }
     }
-    else
-    {
-        cout << "Tripulante cadastrado com sucesso!" << endl;
-    }
+
+    novoAssento.status = true;
+    fseek(arq_assento, 0, SEEK_END);
+    fwrite(&novoAssento, sizeof(AssentoBin), 1, arq_assento);
+    cout << "Assento " << novoAssento.cadeira << " cadastrado com sucesso no voo " << novoAssento.codigo_voo << "." << endl;
 
     fclose(arq_assento);
 }
