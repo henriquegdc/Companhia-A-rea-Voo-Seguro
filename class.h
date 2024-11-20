@@ -1,3 +1,5 @@
+#pragma once
+
 #include <iostream>
 #include <cstring>
 #include <string>
@@ -47,9 +49,10 @@ public:
     int cod_aviao;
     Tripulacao tripulacao;  
 
-    Voo(int codigo_voo = 0, const string& data = "00/00/0000", const string& origem = "XXX", const string& destino = "XXX", int cod_aviao = 0)
+    Voo(int codigo_voo = 0, const string& data = "00/00/0000", const string& origem = "XXX", const string& destino = "X00", int cod_aviao = 0)
         : codigo_voo(codigo_voo), data(data), origem(origem), destino(destino), cod_aviao(cod_aviao) {}
 };
+
 
 class Assento: public Voo{
 public:
@@ -61,28 +64,20 @@ public:
         :cadeira(cadeira), status(false){}
 
 };
-
+/*
 class Reserva {
-public:
+private:
     int codigo_reserva;
     Passageiro passageiro;
-    Assento assento;
-    Voo voo;
+    Voo& voo;
+    Assento& assento;
     bool status; 
 
-    Reserva(int codigo_reserva, const Passageiro& passageiro, const Assento& assento, const Voo& voo)
-        : codigo_reserva(codigo_reserva), passageiro(passageiro), assento(assento), voo(voo), status(true) {}
+public:
+    Reserva(int codigo_reserva, const Passageiro& passageiro, Assento& assento, Voo& voo)
+        : codigo_reserva(codigo_reserva), passageiro(passageiro), assento(assento), voo(voo), status(false) {}
 
-    void confirmarReserva() {
-        status = true;
-        assento.status = true;  
-        cout << "Reserva" << codigo_reserva <<" confirmada para o passageiro: " << passageiro.nome << endl;
-    }
-
-    void cancelarReserva() {
-        status = false;
-        assento.status = false;  
-        cout << "Reserva " << codigo_reserva <<" cancelada para o passageiro: " << passageiro.nome << endl;
-    }
+    
 };
 
+*/
