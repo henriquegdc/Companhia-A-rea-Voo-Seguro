@@ -194,76 +194,98 @@ void cadastrarVoo()
     fclose(arq_voo);
 }
 
-void cadastrarAssento()
-{
-    FILE *arq_assento = fopen("assento.bin", "ab");
-    if (arq_assento == NULL)
-    {
-        cout << "Erro ao abrir arquivo" << endl;
+struct AssentoBin {
+    char cadeira[3];    
+    int codigo_voo;     
+    bool status;        
+};
+
+void cadastrarAssento() {
+    FILE *arq_assento = fopen("assento.bin", "rb+");
+    if (arq_assento == NULL) {
+        cerr << "Erro ao abrir arquivo de assentos." << endl;
+        return;
     }
 
-    Assento assento;
+    AssentoBin novoAssento;
+    cout << "Digite o código do voo: ";
+    cin >> novoAssento.codigo_voo;
+    cin.ignore();
 
-    cout << "Qual a cadeira cadastrar? ";
-    getline(cin, assento.cadeira);
+    cout << "Digite o número do assento (ex: 1A): ";
+    cin.getline(novoAssento.cadeira, sizeof(novoAssento.cadeira));
 
-    if (assento.status == true){
-        cout << "Assento ocupado, escolha/cadastre outro assento"<< endl;
-    }else 
-        assento.status = true;
-        cout << "Assento liberado/cadastrado com sucesso para passageiro "<< passageiro.nome << endl;
-        //??? como corrigir esse erro??
-
-    struct AssentoBin
-    {
-        char cadeira [3];
-        bool status;
-    };
-
-    AssentoBin assentoBin;
-    strncpy(assentoBin.cadeira, assento.cadeira.c_str(), sizeof(assentoBin.cadeira));
-    assentoBin.status = assento.status;
-
-     if (fwrite(&assentoBin, sizeof(AssentoBin), 1, arq_assento) != 1)
-    {
-        cerr << "Erro ao salvar os dados no arquivo!" << endl;
+    AssentoBin assentoExistente;
+    while (fread(&assentoExistente, sizeof(AssentoBin), 1, arq_assento) == 1) {
+        if (assentoExistente.codigo_voo == novoAssento.codigo_voo &&
+            strcmp(assentoExistente.cadeira, novoAssento.cadeira) == 0) {
+            if (assentoExistente.status) {
+                cout << "Assento já ocupado. Escolha outro." << endl;
+                fclose(arq_assento);
+                return;
+            }
+        }
     }
-    else
-    {
-        cout << "Tripulante cadastrado com sucesso!" << endl;
-    }
+
+    novoAssento.status = true;
+    fseek(arq_assento, 0, SEEK_END);
+    fwrite(&novoAssento, sizeof(AssentoBin), 1, arq_assento);
+    cout << "Assento " << novoAssento.cadeira << " cadastrado com sucesso no voo " << novoAssento.codigo_voo << "." << endl;
 
     fclose(arq_assento);
 }
 
-/*
+struct ReservasBin{
+    int codigo_voo;
+    char cadeira[3];
+    int codigo_passageiro;
+
+};
 
 void criarReserva() {
-    if (assento.status) {
-            cout << "Erro: Assento " << assento.cadeira << " já está ocupado." << endl;
-            return;
-    }
-        status = true;
-        assento.status = true;
-        cout << "Reserva " << codigo_reserva << " confirmada para o passageiro: " << passageiro.nome << endl;
+    FILE *arq_assento = fopen("assento.bin", "rb+");
+    FILE *arq_reserva = fopen("reserva.bin", "ab");
+    if (arq_assento == NULL || arq_reserva == NULL) {
+        cerr << "Erro ao abrir arquivo(s)." << endl;
+        return;
     }
 
-void cancelarReserva() {
-        if (!status) {
-            cout << "Erro: Reserva " << codigo_reserva << " já está cancelada." << endl;
-            return;
+    ReservaBin novaReserva;
+    cout << "Digite o código do voo: ";
+    cin >> novaReserva.codigo_voo;
+    cin.ignore();
+
+    cout << "Digite o número do assento: ";
+    cin.getline(novaReserva.cadeira, sizeof(novaReserva.cadeira));
+
+    cout << "Digite o código do passageiro: ";
+    cin >> novaReserva.codigo_passageiro;
+
+    AssentoBin assento;
+    bool assentoEncontrado = false, assentoLivre = false;
+    while (fread(&assento, sizeof(AssentoBin), 1, arq_assento) == 1) {
+        if (assento.codigo_voo == novaReserva.codigo_voo &&
+            strcmp(assento.cadeira, novaReserva.cadeira) == 0) {
+            assentoEncontrado = true;
+            if (!assento.status) {
+                assentoLivre = true;
+                assento.status = true;
+                fseek(arq_assento, -sizeof(AssentoBin), SEEK_CUR);
+                fwrite(&assento, sizeof(AssentoBin), 1, arq_assento);
+            }
+            break;
         }
-        status = false;
-        assento.status = false;
-        cout << "Reserva " << codigo_reserva << " cancelada para o passageiro: " << passageiro.nome << endl;
     }
 
-void buscaPassageiro(){
+    if (!assentoEncontrado) {
+        cout << "Assento não encontrado no voo." << endl;
+    } else if (!assentoLivre) {
+        cout << "Assento já ocupado." << endl;
+    } else {
+        fwrite(&novaReserva, sizeof(ReservaBin), 1, arq_reserva);
+        cout << "Reserva criada com sucesso para o passageiro " << novaReserva.codigo_passageiro << "." << endl;
+    }
 
+    fclose(arq_assento);
+    fclose(arq_reserva);
 }
-
-void buscaTripulante(){
-
-}
-
-*/
