@@ -64,7 +64,7 @@ public:
         :cadeira(cadeira), status(false){}
 
 };
-/*
+
 class Reserva {
 private:
     int codigo_reserva;
@@ -79,5 +79,3 @@ public:
 
     
 };
-
-*/

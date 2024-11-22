@@ -250,15 +250,15 @@ void criarReserva() {
         return;
     }
 
-    ReservaBin novaReserva;
+    ReservasBin novaReserva;
     cout << "Digite o código do voo: ";
     cin >> novaReserva.codigo_voo;
     cin.ignore();
 
-    cout << "Digite o número do assento: ";
+    cout << "Digite o numero do assento: ";
     cin.getline(novaReserva.cadeira, sizeof(novaReserva.cadeira));
 
-    cout << "Digite o código do passageiro: ";
+    cout << "Digite o codigo do passageiro: ";
     cin >> novaReserva.codigo_passageiro;
 
     AssentoBin assento;
@@ -278,14 +278,22 @@ void criarReserva() {
     }
 
     if (!assentoEncontrado) {
-        cout << "Assento não encontrado no voo." << endl;
+        cout << "Assento nao encontrado no voo." << endl;
     } else if (!assentoLivre) {
-        cout << "Assento já ocupado." << endl;
+        cout << "Assento ja ocupado." << endl;
     } else {
-        fwrite(&novaReserva, sizeof(ReservaBin), 1, arq_reserva);
+        fwrite(&novaReserva, sizeof(ReservasBin), 1, arq_reserva);
         cout << "Reserva criada com sucesso para o passageiro " << novaReserva.codigo_passageiro << "." << endl;
     }
 
     fclose(arq_assento);
     fclose(arq_reserva);
+}
+
+void ListaPassageiro(){
+    
+}
+
+void ListaTripulacao(){
+
 }
