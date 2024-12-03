@@ -54,15 +54,14 @@ public:
 };
 
 
-class Assento: public Voo{
+class Assento : public Voo {
 public:
     string cadeira;
     bool status;
     Passageiro passageiro;
 
-    Assento(const string& cadeira= "X00", bool status = false)
-        :cadeira(cadeira), status(false){}
-
+    Assento(const string& cadeira = "X00", bool status = false)
+        : cadeira(cadeira), status(status) {}
 };
 
 class Reserva {
@@ -71,11 +70,9 @@ private:
     Passageiro passageiro;
     Voo& voo;
     Assento& assento;
-    bool status; 
+    bool status;
 
 public:
-    Reserva(int codigo_reserva, const Passageiro& passageiro, Assento& assento, Voo& voo)
-        : codigo_reserva(codigo_reserva), passageiro(passageiro), assento(assento), voo(voo), status(false) {}
-
-    
+    Reserva(int codigo_reserva, const Passageiro& passageiro, Voo& voo, Assento& assento)
+        : codigo_reserva(codigo_reserva), passageiro(passageiro), voo(voo), assento(assento), status(false) {}
 };
