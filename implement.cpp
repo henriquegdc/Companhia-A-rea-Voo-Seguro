@@ -340,3 +340,32 @@ void cancelarReserva(){
     fclose(arq_assento);
 
 }
+
+void listarVoosPorPassageiro(){
+    FILE *arq_reserva = fopen("reserva.bin", "rb");
+    if (!arq_reserva) {
+        cerr << "Erro ao abrir arquivo de reservas.\n";
+        return;
+    }
+
+    int codigo_passageiro;
+    cout << "Digite o código do passageiro: ";
+    cin >> codigo_passageiro;
+
+    ReservasBin reserva;
+    bool encontrado = false;
+
+    cout << "Voos do passageiro " << codigo_passageiro << ":\n";
+    while (fread(&reserva, sizeof(ReservasBin), 1, arq_reserva) == 1) {
+        if (reserva.codigo_passageiro == codigo_passageiro) {
+            cout << "- Voo " << reserva.codigo_voo << ", Assento: " << reserva.cadeira << "\n";
+            encontrado = true;
+        }
+    }
+
+    if (!encontrado) {
+        cout << "Nenhum voo encontrado para este passageiro.\n";
+    }
+
+    fclose(arq_reserva);
+}
