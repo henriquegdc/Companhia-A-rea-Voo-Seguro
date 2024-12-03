@@ -369,3 +369,36 @@ void listarVoosPorPassageiro(){
 
     fclose(arq_reserva);
 }
+
+void buscarPassageiro(){
+    FILE *arq_passageiro = fopen("passageiro.bin", "rb");
+    if (!arq_passageiro) {
+        cerr << "Erro ao abrir arquivo de passageiros.\n";
+        return;
+    }
+
+    int codigo;
+    cout << "Digite o código do passageiro: ";
+    cin >> codigo;
+
+    PassageiroBin passageiro;
+    bool encontrado = false;
+
+    while (fread(&passageiro, sizeof(PassageiroBin), 1, arq_passageiro) == 1) {
+        if (passageiro.codigo == codigo) {
+            cout << "Passageiro encontrado:\n";
+            cout << "Nome: " << passageiro.nome << "\n";
+            cout << "Telefone: " << passageiro.telefone << "\n";
+            cout << "Endereço: " << passageiro.endereco << "\n";
+            cout << "Fidelidade: " << (passageiro.fidelidade ? "Sim" : "Não") << "\n";
+            encontrado = true;
+            break;
+        }
+    }
+
+    if (!encontrado) {
+        cout << "Passageiro não encontrado.\n";
+    }
+
+    fclose(arq_passageiro);
+}
