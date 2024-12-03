@@ -414,15 +414,15 @@ void programaFidelidade(){
     cout << "Digite o código do passageiro: ";
     cin >> codigo;
 
-    PassageiroBin passageiro;
+    passageiroBin passageiro;
     bool encontrado = false;
 
-    while (fread(&passageiro, sizeof(PassageiroBin), 1, arq_passageiro) == 1) {
+    while (fread(&passageiro, sizeof(passageiroBin), 1, arq_passageiro) == 1) {
         if (passageiro.codigo == codigo) {
             encontrado = true;
             passageiro.pt_fidelidade += 10; 
-            fseek(arq_passageiro, -sizeof(PassageiroBin), SEEK_CUR);
-            fwrite(&passageiro, sizeof(PassageiroBin), 1, arq_passageiro);
+            fseek(arq_passageiro, -sizeof(passageiroBin), SEEK_CUR);
+            fwrite(&passageiro, sizeof(passageiroBin), 1, arq_passageiro);
             cout << "Pontos de fidelidade atualizados: " << passageiro.pt_fidelidade << "\n";
             break;
         }
@@ -433,4 +433,43 @@ void programaFidelidade(){
     }
 
     fclose(arq_passageiro);
+}
+
+void buscarTripulacao() {
+    FILE *arq_tripulacao = fopen("tripulacao.bin", "rb");
+    if (!arq_tripulacao) {
+        cerr << "Erro ao abrir arquivo de tripulação.\n";
+        return;
+    }
+
+    int codigo;
+    cout << "Digite o código do tripulante: ";
+    cin >> codigo;
+
+    struct TripulacaoBin {
+        int codigo;
+        char nome[100];
+        char telefone[20];
+        char cargo[20];
+    };
+
+    TripulacaoBin tripulacao;
+    bool encontrado = false;
+
+    while (fread(&tripulacao, sizeof(TripulacaoBin), 1, arq_tripulacao) == 1) {
+        if (tripulacao.codigo == codigo) {
+            cout << "Tripulante encontrado:\n";
+            cout << "Nome: " << tripulacao.nome << "\n";
+            cout << "Telefone: " << tripulacao.telefone << "\n";
+            cout << "Cargo: " << tripulacao.cargo << "\n";
+            encontrado = true;
+            break;
+        }
+    }
+
+    if (!encontrado) {
+        cout << "Tripulante não encontrado.\n";
+    }
+
+    fclose(arq_tripulacao);
 }
