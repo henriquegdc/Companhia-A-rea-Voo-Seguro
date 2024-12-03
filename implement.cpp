@@ -402,3 +402,35 @@ void buscarPassageiro(){
 
     fclose(arq_passageiro);
 }
+
+void programaFidelidade(){
+    FILE *arq_passageiro = fopen("passageiro.bin", "rb+");
+    if (!arq_passageiro) {
+        cerr << "Erro ao abrir arquivo de passageiros.\n";
+        return;
+    }
+
+    int codigo;
+    cout << "Digite o código do passageiro: ";
+    cin >> codigo;
+
+    PassageiroBin passageiro;
+    bool encontrado = false;
+
+    while (fread(&passageiro, sizeof(PassageiroBin), 1, arq_passageiro) == 1) {
+        if (passageiro.codigo == codigo) {
+            encontrado = true;
+            passageiro.pt_fidelidade += 10; 
+            fseek(arq_passageiro, -sizeof(PassageiroBin), SEEK_CUR);
+            fwrite(&passageiro, sizeof(PassageiroBin), 1, arq_passageiro);
+            cout << "Pontos de fidelidade atualizados: " << passageiro.pt_fidelidade << "\n";
+            break;
+        }
+    }
+
+    if (!encontrado) {
+        cout << "Passageiro não encontrado.\n";
+    }
+
+    fclose(arq_passageiro);
+}
