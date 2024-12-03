@@ -31,9 +31,22 @@ do{
             case 3: cadastrarVoo(); break;
             case 4: cadastrarAssento(); break;
             case 5: criarReserva(); break;
-            case 6: /* função de cancelamento */ break;
-            case 7: /* função de consulta */ break;
-            case 8: /* programa de fidelidade */ break;
+            case 6: cancelarReserva(); break;
+            case 7: 
+                cout << "Consultas:\n";
+                cout << "1. Buscar Passageiro\n";
+                cout << "2. Buscar Tripulação\n";
+                cout << "3. Listar Voos de Passageiro\n";
+                int subOpcao;
+                cin >> subOpcao;
+                switch (subOpcao) {
+                    case 1: buscarPassageiro(); break;
+                    case 2: buscarTripulacao(); break;
+                    case 3: listarVoosPorPassageiro(); break;
+                    default: cout << "Opção inválida!\n";
+                }
+                break; 
+            case 8: programaFidelidade(); break;
             case 9: cout << "Saindo..." << endl; break;
             default: cout << "Opção inválida!" << endl;
     }
