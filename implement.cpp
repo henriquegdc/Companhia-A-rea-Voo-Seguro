@@ -5,6 +5,20 @@
 
 using namespace std;
 
+void inicializarSistema() {
+    // Arquivos que serão removidos no início
+    const char* arquivos[] = {"passageiro.bin", "reserva.bin", "assento.bin"};
+    int numArquivos = sizeof(arquivos) / sizeof(arquivos[0]);
+
+    for (int i = 0; i < numArquivos; ++i) {
+        if (remove(arquivos[i]) == 0) {
+            cout << "Arquivo " << arquivos[i] << " excluído com sucesso.\n";
+        } else {
+            cout << "Arquivo " << arquivos[i] << " não encontrado ou não pode ser excluído.\n";
+        }
+    }
+}
+
 void cadastrarPassageiro()
 {
     FILE *arq_passageiro = fopen("passageiro.bin", "ab");
@@ -74,14 +88,14 @@ void cadastrarTripulacao()
 
     Tripulacao tripulacao;
 
-    cout << "Digite o código do passageiro: ";
+    cout << "Digite o código do tripulante: ";
     cin >> tripulacao.codigo;
     cin.ignore();
 
-    cout << "Digite o nome do passageiro: ";
+    cout << "Digite o nome do tripulante: ";
     getline(cin, tripulacao.nome);
 
-    cout << "Digite o telefone do passageiro: ";
+    cout << "Digite o telefone do tripulante: ";
     getline(cin, tripulacao.telefone);
 
     cout << "\nQual o cargo:" << endl;
@@ -195,16 +209,20 @@ void cadastrarVoo()
 }
 
 struct AssentoBin {
-    char cadeira[3];    
+    char cadeira[4];    
     int codigo_voo;     
     bool status;        
 };
 
 void cadastrarAssento() {
-    FILE *arq_assento = fopen("assento.bin", "rb+");
-    if (arq_assento == NULL) {
-        cerr << "Erro ao abrir arquivo de assentos." << endl;
-        return;
+    FILE *arq_assento = fopen("assento.bin", "rb+");  
+    if (!arq_assento) {
+        cerr << "Arquivo de assentos não encontrado. Criando um novo arquivo..." << endl;
+        arq_assento = fopen("assento.bin", "wb+");
+        if (!arq_assento) {
+            cerr << "Erro ao criar o arquivo de assentos." << endl;
+            return;
+        }
     }
 
     AssentoBin novoAssento;
@@ -216,21 +234,30 @@ void cadastrarAssento() {
     cin.getline(novoAssento.cadeira, sizeof(novoAssento.cadeira));
 
     AssentoBin assentoExistente;
+    bool assentoDuplicado = false;
+
     while (fread(&assentoExistente, sizeof(AssentoBin), 1, arq_assento) == 1) {
         if (assentoExistente.codigo_voo == novoAssento.codigo_voo &&
             strcmp(assentoExistente.cadeira, novoAssento.cadeira) == 0) {
-            if (assentoExistente.status) {
-                cout << "Assento já ocupado. Escolha outro." << endl;
-                fclose(arq_assento);
-                return;
-            }
+            assentoDuplicado = true;
+            break;
         }
     }
 
-    novoAssento.status = true;
-    fseek(arq_assento, 0, SEEK_END);
-    fwrite(&novoAssento, sizeof(AssentoBin), 1, arq_assento);
-    cout << "Assento " << novoAssento.cadeira << " cadastrado com sucesso no voo " << novoAssento.codigo_voo << "." << endl;
+    if (assentoDuplicado) {
+        cout << "Erro: Este assento já foi cadastrado para este voo!" << endl;
+        fclose(arq_assento);
+        return;
+    }
+    
+    novoAssento.status = false;  
+
+    fseek(arq_assento, 0, SEEK_END);  
+    if (fwrite(&novoAssento, sizeof(AssentoBin), 1, arq_assento) != 1) {
+        cerr << "Erro ao salvar o assento no arquivo." << endl;
+    } else {
+        cout << "Assento cadastrado com sucesso no voo " << novoAssento.codigo_voo << ", assento " << novoAssento.cadeira << "." << endl;
+    }
 
     fclose(arq_assento);
 }
@@ -290,55 +317,71 @@ void criarReserva() {
     fclose(arq_reserva);
 }
 
-void cancelarReserva(){
-    FILE *arq_reserva = fopen("reserva.bin", "rb+");
+void cancelarReserva() {
+    FILE *arq_reserva = fopen("reserva.bin", "rb");
     FILE *arq_assento = fopen("assento.bin", "rb+");
     if (!arq_reserva || !arq_assento) {
-        cerr << "Erro ao abrir arquivos.\n";
+        cerr << "Erro ao abrir os arquivos necessários.\n";
+        if (arq_reserva) fclose(arq_reserva);
+        if (arq_assento) fclose(arq_assento);
         return;
     }
 
     int codigo_voo;
-    char cadeira[3];
+    char cadeira[4];
     cout << "Digite o código do voo: ";
     cin >> codigo_voo;
-    cout << "Digite o número do assento: ";
-    cin >> cadeira;
+    cin.ignore();
+    cout << "Digite o número do assento (ex: 1A): ";
+    cin.getline(cadeira, sizeof(cadeira));
 
     ReservasBin reserva;
     AssentoBin assento;
     bool reservaEncontrada = false;
 
-    FILE *temp = fopen("temp.bin", "wb");
+    // Criar um arquivo temporário para armazenar reservas não canceladas
+    FILE *temp_reserva = fopen("temp_reserva.bin", "wb");
+    if (!temp_reserva) {
+        cerr << "Erro ao criar o arquivo temporário para reservas.\n";
+        fclose(arq_reserva);
+        fclose(arq_assento);
+        return;
+    }
+
+    // Procurar a reserva a ser cancelada
     while (fread(&reserva, sizeof(ReservasBin), 1, arq_reserva) == 1) {
         if (reserva.codigo_voo == codigo_voo && strcmp(reserva.cadeira, cadeira) == 0) {
             reservaEncontrada = true;
+
+            // Encontrar e liberar o assento correspondente
+            rewind(arq_assento);  // Reinicia a leitura no arquivo de assentos
             while (fread(&assento, sizeof(AssentoBin), 1, arq_assento) == 1) {
                 if (assento.codigo_voo == codigo_voo && strcmp(assento.cadeira, cadeira) == 0) {
-                    assento.status = false;
-                    fseek(arq_assento, -sizeof(AssentoBin), SEEK_CUR);
+                    assento.status = false;  // Marca o assento como livre
+                    fseek(arq_assento, -sizeof(AssentoBin), SEEK_CUR);  // Volta para sobrescrever
                     fwrite(&assento, sizeof(AssentoBin), 1, arq_assento);
+                    cout << "Assento " << cadeira << " no voo " << codigo_voo << " foi liberado.\n";
                     break;
                 }
             }
         } else {
-            fwrite(&reserva, sizeof(ReservasBin), 1, temp);
+            fwrite(&reserva, sizeof(ReservasBin), 1, temp_reserva);  // Copia reservas não canceladas
         }
     }
 
     fclose(arq_reserva);
-    fclose(temp);
+    fclose(arq_assento);
+    fclose(temp_reserva);
+
+    // Substituir o arquivo de reservas pelo temporário
     remove("reserva.bin");
-    rename("temp.bin", "reserva.bin");
+    rename("temp_reserva.bin", "reserva.bin");
 
     if (reservaEncontrada) {
         cout << "Reserva cancelada com sucesso.\n";
     } else {
         cout << "Reserva não encontrada.\n";
     }
-
-    fclose(arq_assento);
-
 }
 
 void listarVoosPorPassageiro(){
@@ -412,10 +455,13 @@ void buscarPassageiro(){
     fclose(arq_passageiro);
 }
 
-void programaFidelidade(){
+void programaFidelidade() {
     FILE *arq_passageiro = fopen("passageiro.bin", "rb+");
-    if (!arq_passageiro) {
-        cerr << "Erro ao abrir arquivo de passageiros.\n";
+    FILE *arq_reserva = fopen("reserva.bin", "rb");
+    if (!arq_passageiro || !arq_reserva) {
+        cerr << "Erro ao abrir arquivos necessários.\n";
+        if (arq_passageiro) fclose(arq_passageiro);
+        if (arq_reserva) fclose(arq_reserva);
         return;
     }
 
@@ -423,25 +469,50 @@ void programaFidelidade(){
     cout << "Digite o código do passageiro: ";
     cin >> codigo;
 
-    PassageiroBin passageiro;
+    PassageiroBin passageiro; 
     bool encontrado = false;
 
+    // Verifica se o passageiro existe no arquivo
     while (fread(&passageiro, sizeof(PassageiroBin), 1, arq_passageiro) == 1) {
-    if (passageiro.codigo == codigo) {
-        passageiro.pt_fidelidade += 10; 
-        fseek(arq_passageiro, -sizeof(PassageiroBin), SEEK_CUR);
-        fwrite(&passageiro, sizeof(PassageiroBin), 1, arq_passageiro);
-        cout << "Pontos de fidelidade atualizados: " << passageiro.pt_fidelidade << "\n";
-        break;
+        if (passageiro.codigo == codigo) {
+            encontrado = true;
+            break;
+        }
     }
-}
 
     if (!encontrado) {
-        cout << "Passageiro não encontrado.\n";
+        cout << "Passageiro com código " << codigo << " não encontrado.\n";
+        fclose(arq_passageiro);
+        fclose(arq_reserva);
+        return;
     }
 
+    // Conta o número de voos realizados pelo passageiro
+    ReservasBin reserva; 
+    int voosRealizados = 0;
+
+    while (fread(&reserva, sizeof(ReservasBin), 1, arq_reserva) == 1) {
+        if (reserva.codigo_passageiro == codigo) {
+            voosRealizados++;
+        }
+    }
+
+    // Calcula os novos pontos de fidelidade
+    int novosPontos = voosRealizados * 10;
+    passageiro.pt_fidelidade = novosPontos;
+
+    // Atualiza o arquivo de passageiros
+    fseek(arq_passageiro, -sizeof(PassageiroBin), SEEK_CUR);
+    fwrite(&passageiro, sizeof(PassageiroBin), 1, arq_passageiro);
+
+    cout << "Pontos de fidelidade atualizados!\n";
+    cout << "Voos realizados: " << voosRealizados << "\n";
+    cout << "Novos pontos de fidelidade: " << passageiro.pt_fidelidade << "\n";
+
     fclose(arq_passageiro);
+    fclose(arq_reserva);
 }
+
 
 void buscarTripulacao() {
     FILE *arq_tripulacao = fopen("tripulacao.bin", "rb");

@@ -3,10 +3,14 @@
 #include <string>
 #include "class.h"
 #include "implement.cpp"
+#include <locale.h>
 
 using namespace std;
 
 int main(){
+setlocale(LC_ALL, "Portuguese");
+
+inicializarSistema();
 
 int escolha;
 
